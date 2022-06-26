@@ -1,5 +1,6 @@
 from PIL import Image, ImageDraw
 import random
+from enum import Enum, auto
 
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
@@ -9,15 +10,20 @@ def invert_color(c):
 DEFAULT_BACKGROUND_COLOR = BLACK
 DEFAULT_DRAW_COLOR = (0, 57, 204)
 
+class SquareTypes(Enum):
+    DIAGONAL = auto()
+    AXIS_PARALLEL = auto()
+    QUARTER_CIRCLE = auto()
+    SEMI_CIRCLE = auto()
+
 # generates a new image consisting of a grid of size width * height.
 # each square contains a diagonal line, whose direction is determined by f : (i, j) -> bool
 def generate_image(
     width,
     height,
     f,
-    square_size = 50,
+    square_size=50,
     thickness=10,
-    highlights=lambda i,j: False,
     background_color=DEFAULT_BACKGROUND_COLOR,
     draw_color=DEFAULT_DRAW_COLOR
 ):
@@ -26,45 +32,58 @@ def generate_image(
     
     for i in range(0, width):
         for j in range(0, height):
-            if highlights(i,j):
-                selected_thickness = int(thickness * 1.2)
-                selected_color = invert_color(draw_color)
-            else:
-                selected_thickness = thickness
-                selected_color = draw_color
-            if f(i, j):
-                draw.line([(i * square_size, j * square_size), ((i+1) * square_size, (j+1) * square_size)], fill=selected_color, width=selected_thickness)
-            else:
-                draw.line([((i+1) * square_size, j * square_size), (i * square_size, (j+1) * square_size)], fill=selected_color, width=selected_thickness)
-
+            f(draw, square_size, thickness, draw_color, i, j)
     return img
 
-def dual(params):
-    return (params[0], params[1], lambda i,j: not params[2](i,j))
+def dual(box): # TODO: generalize for different shape types
+    return [[1 - box[i][j] for j in range(len(box[0]))] for i in range(len(box))]
 
 def gen_img(p):
     return generate_image(p[0], p[1], p[2])
 
-def box_to_lambda(box):
+def center(p1, p2):
+    mean = lambda x,y: (x+y)/2
+    return (mean(p1[0], p2[0]), mean(p1[1], p2[1]))
+
+def box_to_lambda(box, square_type=SquareTypes.DIAGONAL, highlighted=None):
     box_width = len(box)
     box_height = len(box[0])
-    return lambda i,j: box[i % box_width][j % box_height]
-def box_highlighter(box, i, j):
-    box_width = len(box)
-    box_height = len(box[0])
-    return lambda i2,j2: (i2 % box_width == i) and (j2 % box_height == j)
+    def f(draw, square_size, thickness, draw_color, i, j):
+        box_i = i % box_width
+        box_j = j % box_height
+        square_content = box[box_i][box_j]
+        if highlighted == (box_i, box_j):
+            selected_thickness = int(thickness * 1.2)
+            selected_color = invert_color(draw_color)
+        else:
+            selected_thickness = thickness
+            selected_color = draw_color
+
+        corners = [[(i1 * square_size, i2 * square_size) for i1 in [i, i+1]] for i2 in [j, j+1]]
+        horizontal_edge_centers = [center(corners[i][0], corners[i][1]) for i in [0,1]]
+        vertical_edge_centers = [center(corners[0][j], corners[1][j]) for j in [0,1]]
+        midpoint = center(corners[0][0], corners[1][1])
+        
+        # check the mode in which the squares should be filled # TODO: add possibility to leave a square blank in each type
+        if square_type is SquareTypes.DIAGONAL:
+            if square_content == 0:
+                draw.line([corners[0][0], corners[1][1]], fill=selected_color, width=selected_thickness)
+            elif square_content == 1:
+                draw.line([corners[1][0], corners[0][1]], fill=selected_color, width=selected_thickness)
+        elif square_type is SquareTypes.AXIS_PARALLEL:
+            if square_content == 0:
+                draw.line([horizontal_edge_centers[0], horizontal_edge_centers[1]], fill=selected_color, width=selected_thickness)
+            elif square_content == 1:
+                draw.line([vertical_edge_centers[0], vertical_edge_centers[1]], fill=selected_color, width=selected_thickness)
+        elif square_type is SquareTypes.QUARTER_CIRCLE: # TODO
+            pass
+        elif square_type is SquareTypes.SEMI_CIRCLE: # TODO
+            pass
+    return f
 
 def main():
-    # f = lambda i,j: (i*j) % 2
-    # f = lambda i,j: (i % 2) + ((j-i) % 3)
-    # f = lambda i,j: random.randint(0,1)
-    # f = box_to_lambda([[0,0], [0,0], [0,1]])
-    f = box_to_lambda([[0,1], [0,1], [1,0], [1,0]])
-
-    parameters = (30, 20, lambda i,j: f(i,j) == 0)
-    # parameters = (30, 20, lambda i,j: f(i,j) % 2 == 0)
-    gen_img(parameters).show()
-    # gen_img(dual(parameters)).show()
+    # TODO: fill in some examples
+    pass
 
 if __name__ == "__main__":
     main()

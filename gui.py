@@ -18,29 +18,47 @@ window.geometry('1000x800')
 
 # initialize box
 
+square_type = square_diagonals.SquareTypes.DIAGONAL
 box_width = 3
 box_height = 2
 box = [[0] * box_height for i in range(box_width)]
-box_highlight = (lambda i,j: False)
-currently_highlighted = None
+box_highlight = None
 background_color = square_diagonals.DEFAULT_BACKGROUND_COLOR
 draw_color = square_diagonals.DEFAULT_DRAW_COLOR
 
-# generate the box image
-box_image = square_diagonals.generate_image(box_width, box_height, square_diagonals.box_to_lambda(box), highlights=box_highlight, square_size=30, thickness=7)
+def generate_images():
+    global box_image, generated_image, resized, converted_box_img, converted_gen_img
+    # generate images
+    box_image = square_diagonals.generate_image(
+        box_width,
+        box_height,
+        square_diagonals.box_to_lambda(box, square_type=square_type, highlighted=box_highlight),
+        square_size=30,
+        thickness=7,
+        background_color=background_color,
+        draw_color=draw_color
+    )
+    generated_image = square_diagonals.generate_image(
+        30,
+        20,
+        square_diagonals.box_to_lambda(box, square_type=square_type, highlighted=box_highlight),
+        square_size=50,
+        thickness=10,
+        background_color=background_color,
+        draw_color=draw_color
+    )
+    resized = generated_image.crop((0,0,950,570))
+    converted_box_img = ImageTk.PhotoImage(box_image)
+    converted_gen_img = ImageTk.PhotoImage(resized)
 
-# generate the large image
-generated_image = square_diagonals.generate_image(30, 20, square_diagonals.box_to_lambda(box), highlights=box_highlight, square_size=50)
-resized = generated_image.crop((0,0,950,570))
+generate_images()
 
 # add the box image to the window
-converted_box_img = ImageTk.PhotoImage(box_image)
 box_label = tkinter.Label(image = converted_box_img)
 box_label.image = converted_box_img
 box_label.place(x=200, y=0)
 
 # add the large image to the window
-converted_gen_img = ImageTk.PhotoImage(resized)
 image_label = tkinter.Label(image = converted_gen_img)
 image_label.image = converted_gen_img
 image_label.place(x=0, y=200)
@@ -52,13 +70,7 @@ def in_bounds(i, j):
 
 # updates all images to match the current content of the box
 def refresh():
-    global box_image, generated_image, resized, converted_box_img, converted_gen_img
-    # generate images
-    box_image = square_diagonals.generate_image(box_width, box_height, square_diagonals.box_to_lambda(box), highlights=box_highlight, square_size=30, thickness=7, background_color=background_color, draw_color=draw_color)
-    generated_image = square_diagonals.generate_image(30, 20, square_diagonals.box_to_lambda(box), highlights=box_highlight, square_size=50, background_color=background_color, draw_color=draw_color)
-    resized = generated_image.crop((0,0,950,570))
-    converted_box_img = ImageTk.PhotoImage(box_image)
-    converted_gen_img = ImageTk.PhotoImage(resized)
+    generate_images()
 
     # update gui
     box_label.configure(image = converted_box_img)
@@ -76,17 +88,15 @@ def box_click_handler(event):
         box[i][j] = 1 - box[i][j]
         refresh()
 def box_motion_handler(event):
-    global box_highlight, currently_highlighted
+    global box_highlight
     i = event.x // 30
     j = event.y // 30
-    if in_bounds(i, j) and not (currently_highlighted == (i,j)):
-        box_highlight = square_diagonals.box_highlighter(box, i, j)
-        currently_highlighted = (i,j)
+    if in_bounds(i, j) and not (box_highlight == (i,j)):
+        box_highlight = (i,j)
         refresh()
 def box_leave_handler(event):
-    global box_highlight, currently_highlighted
-    box_highlight = (lambda i,j: False)
-    currently_highlighted = None
+    global box_highlight
+    box_highlight = None
     refresh()
 box_label.bind("<Button-1>", box_click_handler)
 box_label.bind("<Motion>", box_motion_handler)
@@ -238,6 +248,32 @@ file_menu.add_command(
 menubar.add_cascade(
     label='File',
     menu=file_menu,
+)
+
+# Mode > ...
+mode_menu = Menu(menubar, tearoff=False)
+# Mode > Diagonal
+def set_mode_squares_diagonal():
+    global square_type
+    square_type = square_diagonals.SquareTypes.DIAGONAL
+    refresh()
+mode_menu.add_command(
+    label='Squares (Diagonal)',
+    command=set_mode_squares_diagonal,
+)
+# Mode > Axis parallel
+def set_mode_squares_axis_parallel():
+    global square_type
+    square_type = square_diagonals.SquareTypes.AXIS_PARALLEL
+    refresh()
+mode_menu.add_command(
+    label='Squares (Axis parallel)',
+    command=set_mode_squares_axis_parallel,
+)
+# add Mode menu to menubar
+menubar.add_cascade(
+    label='Mode',
+    menu=mode_menu,
 )
 
 
