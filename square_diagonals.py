@@ -17,7 +17,9 @@ class SquareTypes(Enum):
     SEMI_CIRCLE = auto()
 
 # generates a new image consisting of a grid of size width * height.
-# each square contains a diagonal line, whose direction is determined by f : (i, j) -> bool
+# the function f should, given a tuple
+#     (draw, square_size, thickness, draw_color, i, j),
+# use the given draw object to fill in the (i,j)-th square.
 def generate_image(
     width,
     height,
