@@ -3,25 +3,35 @@ import random
 
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
+def invert_color(c):
+    return (255-c[0], 255-c[1], 255-c[2])
 
-BACKGROUND_COLOR = BLACK
-DRAW_COLOR = (0, 57, 204)
-HIGHLIGHT_COLOR = (200, 0, 0)
+DEFAULT_BACKGROUND_COLOR = BLACK
+DEFAULT_DRAW_COLOR = (0, 57, 204)
 
 # generates a new image consisting of a grid of size width * height.
 # each square contains a diagonal line, whose direction is determined by f : (i, j) -> bool
-def generate_image(width, height, f, square_size = 50, thickness=10, highlights=lambda i,j: False):
-    img = Image.new('RGB', (width * square_size, height * square_size), BACKGROUND_COLOR)
+def generate_image(
+    width,
+    height,
+    f,
+    square_size = 50,
+    thickness=10,
+    highlights=lambda i,j: False,
+    background_color=DEFAULT_BACKGROUND_COLOR,
+    draw_color=DEFAULT_DRAW_COLOR
+):
+    img = Image.new('RGB', (width * square_size, height * square_size), background_color)
     draw = ImageDraw.Draw(img)
     
     for i in range(0, width):
         for j in range(0, height):
             if highlights(i,j):
                 selected_thickness = int(thickness * 1.2)
-                selected_color = HIGHLIGHT_COLOR
+                selected_color = invert_color(draw_color)
             else:
                 selected_thickness = thickness
-                selected_color = DRAW_COLOR
+                selected_color = draw_color
             if f(i, j):
                 draw.line([(i * square_size, j * square_size), ((i+1) * square_size, (j+1) * square_size)], fill=selected_color, width=selected_thickness)
             else:

@@ -2,6 +2,7 @@ from random import randint
 import tkinter
 from tkinter import *
 from tkinter import filedialog
+from tkinter.colorchooser import askcolor
 
 from PIL import Image, ImageTk
 
@@ -19,10 +20,11 @@ window.geometry('1000x800')
 
 box_width = 3
 box_height = 2
-
 box = [[0] * box_height for i in range(box_width)]
 box_highlight = (lambda i,j: False)
 currently_highlighted = None
+background_color = square_diagonals.DEFAULT_BACKGROUND_COLOR
+draw_color = square_diagonals.DEFAULT_DRAW_COLOR
 
 # generate the box image
 box_image = square_diagonals.generate_image(box_width, box_height, square_diagonals.box_to_lambda(box), highlights=box_highlight, square_size=30, thickness=7)
@@ -52,8 +54,8 @@ def in_bounds(i, j):
 def refresh():
     global box_image, generated_image, resized, converted_box_img, converted_gen_img
     # generate images
-    box_image = square_diagonals.generate_image(box_width, box_height, square_diagonals.box_to_lambda(box), highlights=box_highlight, square_size=30, thickness=7)
-    generated_image = square_diagonals.generate_image(30, 20, square_diagonals.box_to_lambda(box), highlights=box_highlight, square_size=50)
+    box_image = square_diagonals.generate_image(box_width, box_height, square_diagonals.box_to_lambda(box), highlights=box_highlight, square_size=30, thickness=7, background_color=background_color, draw_color=draw_color)
+    generated_image = square_diagonals.generate_image(30, 20, square_diagonals.box_to_lambda(box), highlights=box_highlight, square_size=50, background_color=background_color, draw_color=draw_color)
     resized = generated_image.crop((0,0,950,570))
     converted_box_img = ImageTk.PhotoImage(box_image)
     converted_gen_img = ImageTk.PhotoImage(resized)
@@ -160,6 +162,28 @@ def reset_box():
 
 reset_button = Button(window, text="Reset", width=24, height=1, command=reset_box)
 reset_button.place(x=0, y=120)
+
+
+# color settings
+
+def change_background_color():
+    global background_color
+    rgb = askcolor(color=background_color)[0]
+    if rgb is None:
+        return
+    background_color = rgb
+    refresh()
+change_background_color_button = Button(window, text="Change background color", width=20, height=1, command=change_background_color)
+change_background_color_button.place(x=350, y=0)
+def change_draw_color():
+    global draw_color
+    rgb = askcolor(color=draw_color)[0]
+    if rgb is None:
+        return
+    draw_color = rgb
+    refresh()
+change_draw_color_button = Button(window, text="Change line color", width=20, height=1, command=change_draw_color)
+change_draw_color_button.place(x=350, y=30)
 
 
 # add the menu
