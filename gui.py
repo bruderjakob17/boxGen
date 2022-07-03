@@ -85,7 +85,7 @@ def box_click_handler(event):
     i = event.x // 30
     j = event.y // 30
     if in_bounds(i, j):
-        box[i][j] = 1 - box[i][j]
+        box[i][j] = (box[i][j] + 1) % square_diagonals.number_of_tiles(square_type)
         refresh()
 def box_motion_handler(event):
     global box_highlight
@@ -269,6 +269,33 @@ def set_mode_squares_axis_parallel():
 mode_menu.add_command(
     label='Squares (Axis parallel)',
     command=set_mode_squares_axis_parallel,
+)
+# Mode > Semi circles
+def set_mode_squares_semi_circle():
+    global square_type
+    square_type = square_diagonals.SquareTypes.SEMI_CIRCLE
+    refresh()
+mode_menu.add_command(
+    label='Squares (Semi circle)',
+    command=set_mode_squares_semi_circle,
+)
+# Mode > Quarter circles
+def set_mode_squares_quarter_circle():
+    global square_type
+    square_type = square_diagonals.SquareTypes.QUARTER_CIRCLE
+    refresh()
+mode_menu.add_command(
+    label='Squares (Quarter circle)',
+    command=set_mode_squares_quarter_circle,
+)
+# Mode > Any Squares
+def set_mode_squares_any():
+    global square_type
+    square_type = square_diagonals.SquareTypes.ANY
+    refresh()
+mode_menu.add_command(
+    label='Squares (Any)',
+    command=set_mode_squares_any,
 )
 # add Mode menu to menubar
 menubar.add_cascade(
