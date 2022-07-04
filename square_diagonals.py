@@ -89,6 +89,7 @@ def box_to_lambda(box, square_type=SquareTypes.DIAGONAL, highlighted=None):
         box_i = i % box_width
         box_j = j % box_height
         square_content = box[box_i][box_j]
+        square_type2 = None
         if square_type is SquareTypes.ANY: # TODO: improve code
             if square_content in [0,1]:
                 square_type2 = SquareTypes.DIAGONAL

@@ -158,7 +158,7 @@ dual_button.place(x=0, y=60)
 def random_box():
     for i in range(box_width):
         for j in range(box_height):
-            box[i][j] = randint(0,1)
+            box[i][j] = randint(0,square_diagonals.number_of_tiles(square_type)-1)
     refresh()
 
 random_button = Button(window, text="Random", width=24, height=1, command=random_box)
