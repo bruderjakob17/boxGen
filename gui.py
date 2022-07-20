@@ -123,11 +123,11 @@ def dec_box_width():
     del box[-1]
     box_width = box_width - 1
     refresh()
-def dec_box_height(): # BUG: when changing from 1x2 to 1x1, there is a list index out of range IndexError
+def dec_box_height():
     global box_height
     if box_height == 1:
         return
-    for i in range(box_height):
+    for i in range(box_width):
         del box[i][-1]
     box_height = box_height - 1
     refresh()
